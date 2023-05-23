@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		048144A12A1D1D5C008997E0 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 048144A02A1D1D5C008997E0 /* Shaders.metal */; };
 		04ABBBCB2A1B853D00124E6D /* ThirtyDaysOfMetalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ABBBCA2A1B853D00124E6D /* ThirtyDaysOfMetalApp.swift */; };
 		04ABBBCD2A1B853D00124E6D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ABBBCC2A1B853D00124E6D /* ContentView.swift */; };
 		04ABBBCF2A1B853F00124E6D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04ABBBCE2A1B853F00124E6D /* Assets.xcassets */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		048144A02A1D1D5C008997E0 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		04ABBBC72A1B853D00124E6D /* ThirtyDaysOfMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThirtyDaysOfMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04ABBBCA2A1B853D00124E6D /* ThirtyDaysOfMetalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThirtyDaysOfMetalApp.swift; sourceTree = "<group>"; };
 		04ABBBCC2A1B853D00124E6D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 				04ABBBCC2A1B853D00124E6D /* ContentView.swift */,
 				04ABBBDA2A1B8A5C00124E6D /* CustomMetalView.swift */,
 				04ABBBDC2A1B8BA300124E6D /* Renderer.swift */,
+				048144A02A1D1D5C008997E0 /* Shaders.metal */,
 				04ABBBCE2A1B853F00124E6D /* Assets.xcassets */,
 				04ABBBD02A1B853F00124E6D /* Preview Content */,
 			);
@@ -147,6 +150,7 @@
 				04ABBBCD2A1B853D00124E6D /* ContentView.swift in Sources */,
 				04ABBBDB2A1B8A5C00124E6D /* CustomMetalView.swift in Sources */,
 				04ABBBCB2A1B853D00124E6D /* ThirtyDaysOfMetalApp.swift in Sources */,
+				048144A12A1D1D5C008997E0 /* Shaders.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
