@@ -16,21 +16,15 @@ class Renderer: NSObject, MTKViewDelegate {
 
     init(_ parent: CustomMetalView) {
         self.parent = parent
-        guard let metalDevice = MTLCreateSystemDefaultDevice() else {
-            fatalError("metal not supported by the GPU")
-        }
+        guard let metalDevice = MTLCreateSystemDefaultDevice() else { fatalError("metal not supported by the GPU") }
         self.metalDevice = metalDevice
         print("Device name: ", metalDevice.name)
 
-        guard let buffer = metalDevice.makeBuffer(length: 16) else {
-            fatalError("cannot create buffer")
-        }
+        guard let buffer = metalDevice.makeBuffer(length: 16) else { fatalError("cannot create buffer") }
 
         print("Buffer is \(buffer.length) bytes in length")
 
-        guard let metalCommandQueue = metalDevice.makeCommandQueue() else {
-            fatalError("cannot create metal commandQueue")
-        }
+        guard let metalCommandQueue = metalDevice.makeCommandQueue() else { fatalError("cannot create metal commandQueue") }
 
         self.metalCommandQueue = metalCommandQueue
 
@@ -55,6 +49,14 @@ class Renderer: NSObject, MTKViewDelegate {
         }
 
         commandBuffer.commit()
+
+        guard let library = metalDevice.makeDefaultLibrary() else { fatalError("unable to create default shader library") }
+
+        for name in library.functionNames {
+            let function = library.makeFunction(name: name)!
+            print(function)
+        }
+
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
