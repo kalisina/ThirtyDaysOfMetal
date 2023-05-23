@@ -62,6 +62,22 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
+        let commandBuffer = metalCommandQueue.makeCommandBuffer()!
         
+        guard let renderPassDescriptor = view.currentRenderPassDescriptor else {
+            print("could not get currentRenderPassDescriptor from MTKView")
+            return
+        }
+
+        let renderPassEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
+        renderPassEncoder?.endEncoding()
+
+        guard let drawable = view.currentDrawable else {
+            print("cannot get view.currentDrawable")
+            return
+        }
+
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
     }
 }
