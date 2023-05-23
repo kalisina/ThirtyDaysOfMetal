@@ -14,6 +14,8 @@ class Renderer: NSObject, MTKViewDelegate {
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
     var computePipelineState: MTLComputePipelineState!
+    private var renderPipelineState: MTLRenderPipelineState!
+    private var vertexBuffer: MTLBuffer!
 
     init(_ parent: CustomMetalView) {
         self.parent = parent
@@ -102,6 +104,27 @@ class Renderer: NSObject, MTKViewDelegate {
             }
         }
         commandBuffer2.commit()
+
+        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
+        renderPipelineDescriptor.vertexFunction = library.makeFunction(name: "vertex_main")!
+        renderPipelineDescriptor.fragmentFunction = library.makeFunction(name: "fragment_main")!
+        renderPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+
+        do {
+            renderPipelineState = try metalDevice.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
+        } catch {
+            print("error: ", error.localizedDescription)
+        }
+
+        var positions = [
+            SIMD2<Float>( -0.8, 0.4 ),
+            SIMD2<Float>( 0.4, -0.8 ),
+            SIMD2<Float>( 0.8, 0.8 )
+        ]
+
+        vertexBuffer = metalDevice.makeBuffer(bytes: &positions, length: MemoryLayout<SIMD2<Float>>.stride * positions.count, options: .storageModeShared)
+
+        super.init()
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -109,21 +132,16 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
-        let commandBuffer = metalCommandQueue.makeCommandBuffer()!
+        guard let commandBuffer = metalCommandQueue.makeCommandBuffer(),
+              let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
+
+        let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+        renderCommandEncoder.setRenderPipelineState(renderPipelineState)
+        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+        renderCommandEncoder.endEncoding()
         
-        guard let renderPassDescriptor = view.currentRenderPassDescriptor else {
-            print("could not get currentRenderPassDescriptor from MTKView")
-            return
-        }
-
-        let renderPassEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
-        renderPassEncoder?.endEncoding()
-
-        guard let drawable = view.currentDrawable else {
-            print("cannot get view.currentDrawable")
-            return
-        }
-
+        guard let drawable = view.currentDrawable else { return }
         commandBuffer.present(drawable)
         commandBuffer.commit()
     }
