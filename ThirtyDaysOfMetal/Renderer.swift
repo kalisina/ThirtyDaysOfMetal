@@ -13,6 +13,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var parent: CustomMetalView
     var metalDevice: MTLDevice!
     var metalCommandQueue: MTLCommandQueue!
+    var computePipelineState: MTLComputePipelineState!
 
     init(_ parent: CustomMetalView) {
         self.parent = parent
@@ -50,6 +51,7 @@ class Renderer: NSObject, MTKViewDelegate {
 
         commandBuffer.commit()
 
+        // Library object is created a compile time and holds reference to the Shaders functions
         guard let library = metalDevice.makeDefaultLibrary() else { fatalError("unable to create default shader library") }
 
         for name in library.functionNames {
@@ -57,6 +59,49 @@ class Renderer: NSObject, MTKViewDelegate {
             print(function)
         }
 
+        let kernelFunction = library.makeFunction(name: "add_two_values")!
+
+        do {
+            computePipelineState = try metalDevice.makeComputePipelineState(function: kernelFunction)
+        } catch {
+            print("error: ", error.localizedDescription)
+        }
+
+        let threadsPerThreadgroup = MTLSize(width: 32, height: 1, depth: 1)
+        let threadgroupCount = MTLSize(width: 8, height: 1, depth: 1)
+
+        let elementCount = 256
+        let inputBufferA = metalDevice.makeBuffer(length: MemoryLayout<Float>.stride * elementCount, options: .storageModeShared)!
+        let inputBufferB = metalDevice.makeBuffer(length: MemoryLayout<Float>.stride * elementCount, options: .storageModeShared)!
+        let outputBuffer = metalDevice.makeBuffer(length: MemoryLayout<Float>.stride * elementCount, options: .storageModeShared)!
+
+        let inputsA = inputBufferA.contents().assumingMemoryBound(to: Float.self)
+        let inputsB = inputBufferB.contents().assumingMemoryBound(to: Float.self)
+        for i in 0..<elementCount {
+            inputsA[i] = Float(i)
+            inputsB[i] = Float(elementCount - i)
+        }
+
+        let commandBuffer2 = metalCommandQueue.makeCommandBuffer()!
+        let commandEncoder = commandBuffer2.makeComputeCommandEncoder()!
+        commandEncoder.setComputePipelineState(computePipelineState)
+
+        // Each buffer parameter is “bound” by calling the setBuffer(:offset:index:) method.
+        // Note that the index parameter of each buffer argument matches the index in the buffer attribute in the shader code.
+        commandEncoder.setBuffer(inputBufferA, offset: 0, index: 0)
+        commandEncoder.setBuffer(inputBufferB, offset: 0, index: 1)
+        commandEncoder.setBuffer(outputBuffer, offset: 0, index: 2)
+
+        commandEncoder.dispatchThreadgroups(threadgroupCount, threadsPerThreadgroup: threadsPerThreadgroup)
+        commandEncoder.endEncoding()
+
+        commandBuffer2.addCompletedHandler { _ in
+            let outputs = outputBuffer.contents().assumingMemoryBound(to: Float.self)
+            for i in 0..<elementCount {
+                print("Output element \(i) is \(outputs[i])")
+            }
+        }
+        commandBuffer2.commit()
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
